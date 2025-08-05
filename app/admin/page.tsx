@@ -281,7 +281,7 @@ export default function AdminDashboard() {
 
           <div>
             <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 mb-1">
-              q
+              Photo Url
             </label>
             <input
               type="url"

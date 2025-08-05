@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
             if (!existingUser.alumniId) {
               await prisma.user.update({
                 where: { id: existingUser.id },
-                update: {
+                data: {
                   alumniId: alumni.id,
                   name: user.name || existingUser.name,
                   image: user.image || existingUser.image,

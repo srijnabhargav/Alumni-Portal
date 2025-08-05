@@ -82,8 +82,8 @@ export default function AlumniPage() {
 
   // Redirect if not authenticated
   if (status === 'unauthenticated') {
-    router.push('/login')
-    return null
+    // router.push('/login')
+    // return null
   }
 
   if (error) {
