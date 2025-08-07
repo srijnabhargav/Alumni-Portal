@@ -64,12 +64,12 @@ model VerificationToken {
 
 model Alumni {
   id          String   @id @default(cuid())
-  name        String
+  name        String?  
   email       String   @unique
   phone       String?
-  graduationYear Int
-  degree      String
-  department  String
+  graduationYear Int?  
+  degree      String?  
+  department  String?  
   currentJob  String?
   company     String?
   location    String?
@@ -83,4 +83,14 @@ model Alumni {
   user        User?
 
   @@map("alumni")
+}
+
+model Admin {
+  id          String   @id @default(cuid())
+  username       String   @unique
+  password       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("admin")
 }

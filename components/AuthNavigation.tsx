@@ -25,7 +25,8 @@ export default function AuthNavigation() {
             <>
               <Link href="/" className="hover:text-blue-200">Home</Link>
               <Link href="/alumni" className="hover:text-blue-200">Alumni</Link>
-              <Link href="/admin" className="hover:text-blue-200">Admin</Link>
+              <Link href="/admin/dashboard" className="hover:text-blue-200">Admin</Link>
+              <Link href="/dashboard" className="hover:text-blue-200">Profile</Link>
               
               <div className="flex items-center space-x-3 ml-10">
                 {session.user?.image && (
@@ -48,10 +49,10 @@ export default function AuthNavigation() {
             </>
           ) : (
             <Link 
-              href="/login"
+              href="/admin/login"
               className="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded transition duration-200"
             >
-              Sign In
+              Admin
             </Link>
           )}
         </div>

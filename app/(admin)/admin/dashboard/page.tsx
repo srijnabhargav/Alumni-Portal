@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAdmin } from '@/contexts/AdminContext'
 
 interface AlumniFormData {
   name: string
@@ -20,7 +20,7 @@ interface AlumniFormData {
 }
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession()
+  const { admin, isAuthenticated, isLoading: adminLoading, logout } = useAdmin()
   const router = useRouter()
   
   const [formData, setFormData] = useState<AlumniFormData>({
@@ -41,20 +41,30 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  // Show loading state
-  if (status === 'loading') {
+  // Check admin authentication on component mount
+  useEffect(() => {
+    if (!adminLoading && !isAuthenticated) {
+      router.push('/admin/login')
+    }
+  }, [adminLoading, isAuthenticated, router])
+
+  // Show loading state while checking admin authentication
+  if (adminLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-pulse">Loading...</div>
+          <div className="animate-pulse">
+            <div className="bg-gray-200 h-8 w-48 mx-auto rounded mb-4"></div>
+            <div className="bg-gray-200 h-4 w-32 mx-auto rounded"></div>
+          </div>
+          <p className="mt-4 text-gray-600">Verifying admin access...</p>
         </div>
       </div>
     )
   }
 
-  // Redirect if not authenticated
-  if (status === 'unauthenticated') {
-    router.push('/login')
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
     return null
   }
 
@@ -72,12 +82,29 @@ export default function AdminDashboard() {
     setMessage(null)
 
     try {
+      // Prepare data - convert empty strings to null for optional fields
+      const dataToSubmit = {
+        ...formData,
+        graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : null,
+        // Convert empty strings to null for optional fields
+        name: formData.name || null,
+        phone: formData.phone || null,
+        degree: formData.degree || null,
+        department: formData.department || null,
+        currentJob: formData.currentJob || null,
+        company: formData.company || null,
+        location: formData.location || null,
+        linkedinUrl: formData.linkedinUrl || null,
+        bio: formData.bio || null,
+        profilePicture: formData.profilePicture || null,
+      }
+
       const response = await fetch('/api/alumni', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSubmit),
       })
 
       const data = await response.json()
@@ -101,14 +128,34 @@ export default function AdminDashboard() {
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to add alumni' })
       }
+    } catch (error) {
+      console.error('Error adding alumni:', error)
+      setMessage({ type: 'error', text: 'An unexpected error occurred' })
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleLogout = async () => {
+    await logout()
+    router.push('/admin/login')
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
+      {/* Header with admin info and logout */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome back, {admin?.username}!</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200"
+        >
+          Logout
+        </button>
+      </div>
       
       {message && (
         <div className={`mb-6 p-4 rounded-lg ${
@@ -122,12 +169,15 @@ export default function AdminDashboard() {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">Add New Alumni</h2>
+        <p className="text-sm text-gray-600 mb-6">
+          <span className="text-red-500">*</span> indicates required fields. All other fields are optional.
+        </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name *
+                Full Name
               </label>
               <input
                 type="text"
@@ -135,14 +185,14 @@ export default function AdminDashboard() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter full name (optional)"
               />
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email * (Gmail only for login access)
+                Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -152,7 +202,9 @@ export default function AdminDashboard() {
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter email address"
               />
+              <p className="text-xs text-gray-500 mt-1">Gmail required for login access</p>
             </div>
 
             <div>
@@ -166,12 +218,13 @@ export default function AdminDashboard() {
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter phone number (optional)"
               />
             </div>
 
             <div>
               <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700 mb-1">
-                Graduation Year *
+                Graduation Year
               </label>
               <input
                 type="number"
@@ -179,16 +232,16 @@ export default function AdminDashboard() {
                 name="graduationYear"
                 value={formData.graduationYear}
                 onChange={handleChange}
-                required
                 min="1950"
                 max={new Date().getFullYear()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., 2020"
               />
             </div>
 
             <div>
               <label htmlFor="degree" className="block text-sm font-medium text-gray-700 mb-1">
-                Degree *
+                Degree
               </label>
               <input
                 type="text"
@@ -196,7 +249,6 @@ export default function AdminDashboard() {
                 name="degree"
                 value={formData.degree}
                 onChange={handleChange}
-                required
                 placeholder="e.g., Bachelor of Computer Science"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -204,7 +256,7 @@ export default function AdminDashboard() {
 
             <div>
               <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                Department *
+                Department
               </label>
               <input
                 type="text"
@@ -212,7 +264,6 @@ export default function AdminDashboard() {
                 name="department"
                 value={formData.department}
                 onChange={handleChange}
-                required
                 placeholder="e.g., Computer Science"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -281,7 +332,7 @@ export default function AdminDashboard() {
 
           <div>
             <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 mb-1">
-              Photo Url
+              Profile Picture URL
             </label>
             <input
               type="url"
@@ -304,7 +355,7 @@ export default function AdminDashboard() {
               value={formData.bio}
               onChange={handleChange}
               rows={4}
-              placeholder="Brief description about the alumni..."
+              placeholder="Brief description about the alumni (optional)..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
