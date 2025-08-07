@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   // Check admin authentication on component mount
   useEffect(() => {
     if (!adminLoading && !isAuthenticated) {
-      router.push('/admin/login')
+      router.push('/')
     }
   }, [adminLoading, isAuthenticated, router])
 
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await logout()
-    router.push('/admin/login')
+    router.push('/')
   }
 
   return (
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back, {admin?.username}!</p>
+          <p className="text-gray-600 mt-1">Welcome back!</p>
         </div>
         <button
           onClick={handleLogout}

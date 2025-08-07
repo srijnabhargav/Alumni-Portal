@@ -11,7 +11,7 @@ export default function HomePage() {
             RCEW Alumni Portal
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Connect with fellow alumni, manage your profile, and stay updated with the latest news from your alma mater.
+            Connect with fellow alumni, and manage your profile.
           </p>
         </div>
 

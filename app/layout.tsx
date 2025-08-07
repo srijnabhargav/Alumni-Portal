@@ -8,7 +8,7 @@ import { AdminProvider } from "@/contexts/AdminContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Alumni Network",
+  title: "RCEW Alumni Network",
   description: "Connect with our alumni community",
 };
 

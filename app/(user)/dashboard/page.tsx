@@ -43,9 +43,9 @@ export default function UserDashboard() {
     }
   }, [session]);
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/login" });
-  };
+  // const handleLogout = () => {
+  //   signOut({ callbackUrl: "/login" });
+  // };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -61,7 +61,7 @@ export default function UserDashboard() {
       if (
         formData.graduationYear &&
         (parseInt(formData.graduationYear) < 1900 ||
-          parseInt(formData.graduationYear) > new Date().getFullYear())
+          parseInt(formData.graduationYear) > 2040)
       ) {
         alert("Please enter a valid graduation year");
         setIsLoading(false);
@@ -133,12 +133,12 @@ export default function UserDashboard() {
           <h1 className="text-3xl font-bold text-gray-800">Alumni Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back!</p>
         </div>
-        <button
+        {/* <button
           onClick={handleLogout}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200"
         >
           Logout
-        </button>
+        </button> */}
       </div>
 
       {/* User Info */}
