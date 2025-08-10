@@ -1,9 +1,9 @@
 // app/(admin)/layout.tsx
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAdmin } from "@/contexts/AdminContext";
 
 export default function AdminLayout({
   children,
@@ -16,18 +16,18 @@ export default function AdminLayout({
 
   useEffect(() => {
     // Skip auth check for login page
-    if (pathname === '/admin/login') {
+    if (pathname === "/admin/login") {
       return;
     }
 
     // Redirect to admin login if not authenticated
     if (!isLoading && !isAuthenticated) {
-      router.push('/');
+      router.push("/");
     }
   }, [isAuthenticated, isLoading, pathname, router]);
 
   // Show loading for protected admin routes
-  if (pathname !== '/admin/login' && isLoading) {
+  if (pathname !== "/admin/login" && isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
@@ -39,13 +39,9 @@ export default function AdminLayout({
   }
 
   // Don't render protected content if not authenticated
-  if (pathname !== '/admin/login' && !isAuthenticated) {
+  if (pathname !== "/admin/login" && !isAuthenticated) {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {children}
-    </div>
-  );
+  return <div className="min-h-screen bg-gray-50">{children}</div>;
 }

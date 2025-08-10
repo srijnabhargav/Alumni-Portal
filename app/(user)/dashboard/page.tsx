@@ -94,7 +94,7 @@ export default function UserDashboard() {
       } else {
         console.error("Failed to update alumni information:", result);
         alert(
-          result.error || "Failed to update information. Please try again."
+          result.error || "Failed to update information. Please try again.",
         );
       }
     } catch (error) {

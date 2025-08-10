@@ -15,14 +15,9 @@ export default function UserLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Skip auth check for public pages
-    if (pathname === "/login" || pathname === "/unauthorized") {
-      return;
-    }
-
     // Redirect to user login if not authenticated
     if (status === "unauthenticated") {
-      router.push("/login");
+      router.push("/");
       return;
     }
 

@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Invalid graduation year" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -122,14 +122,14 @@ export async function PUT(request: NextRequest) {
       if (error.message === "Alumni record not found") {
         return NextResponse.json(
           { error: "Alumni record not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

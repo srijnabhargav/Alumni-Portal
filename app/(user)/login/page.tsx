@@ -1,26 +1,27 @@
 // app/(user)/login/page.tsx
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Users, Mail } from 'lucide-react';
+import { useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Users, Mail } from "lucide-react";
 
 export default function UserLoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/dashboard');
+    if (status === "authenticated") {
+      router.push("/profile");
     }
   }, [status, router]);
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    // signIn('google', { callbackUrl: '/dashboard' });
+    signIn("google");
   };
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center">
         <div className="text-center">
@@ -39,9 +40,15 @@ export default function UserLoginPage() {
           <div className="mx-auto w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mb-4">
             <Users className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">RCEW Alumni Portal</h1>
-          <h2 className='text-xl font-bold text-gray-700 mb-2'>(Alumni Login)</h2>
-          <p className="text-gray-600">Sign in with your Google account to access the alumni portal</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            RCEW Alumni Portal
+          </h1>
+          <h2 className="text-xl font-bold text-gray-700 mb-2">
+            (Alumni Login)
+          </h2>
+          <p className="text-gray-600">
+            Sign in with your Google account to join our alumni community
+          </p>
         </div>
 
         {/* Login Form */}
@@ -53,10 +60,10 @@ export default function UserLoginPage() {
             <Mail className="w-5 h-5 mr-2" />
             Sign in with Google
           </button>
-          
+
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500">
-              Only registered alumni can access this portal
+              New users will be guided through profile creation and verification
             </p>
           </div>
         </div>

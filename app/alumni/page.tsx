@@ -130,7 +130,7 @@ export default function AlumniPage() {
     ...new Set(
       alumni
         .filter((person) => person.graduationYear && person.graduationYear > 0) // Better filtering
-        .map((person) => person.graduationYear)
+        .map((person) => person.graduationYear),
     ),
   ].sort((a, b) => b - a);
 
@@ -138,9 +138,9 @@ export default function AlumniPage() {
     ...new Set(
       alumni
         .filter(
-          (person) => person.department && person.department.trim() !== ""
+          (person) => person.department && person.department.trim() !== "",
         )
-        .map((person) => person.department)
+        .map((person) => person.department),
     ),
   ].sort();
 

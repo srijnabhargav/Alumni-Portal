@@ -56,7 +56,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const login = async (
     username: string,
-    password: string
+    password: string,
   ): Promise<boolean> => {
     try {
       console.log("AdminProvider: Attempting login for:", username);

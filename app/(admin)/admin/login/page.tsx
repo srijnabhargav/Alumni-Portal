@@ -1,53 +1,53 @@
 // app/(admin)/admin/login/page.tsx
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Users, Lock, User } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Users, Lock, User } from "lucide-react";
+import { useAdmin } from "@/contexts/AdminContext";
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    username: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const { login, isAuthenticated } = useAdmin();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      window.location.href = '/admin/dashboard';
+      window.location.href = "/admin/dashboard";
     }
   }, [isAuthenticated]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    if (error) setError('');
+    if (error) setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
       const success = await login(formData.username, formData.password);
-      
+
       if (success) {
-        window.location.href = '/admin/dashboard';
+        window.location.href = "/admin/dashboard";
       } else {
-        setError('Invalid username or password');
+        setError("Invalid username or password");
       }
     } catch (error) {
-      console.error('Login failed:', error);
-      setError('Login failed. Please try again.');
+      console.error("Login failed:", error);
+      setError("Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -61,9 +61,15 @@ export default function AdminLoginPage() {
           <div className="mx-auto w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-4">
             <Users className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">RCEW Alumni Portal</h1>
-          <h2 className='text-xl font-bold text-gray-700 mb-2'>(Admin Login)</h2>
-          <p className="text-gray-600">Welcome back! Please sign in to Admin account</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            RCEW Alumni Portal
+          </h1>
+          <h2 className="text-xl font-bold text-gray-700 mb-2">
+            (Admin Login)
+          </h2>
+          <p className="text-gray-600">
+            Welcome back! Please sign in to Admin account
+          </p>
         </div>
 
         {/* Login Form */}
@@ -73,11 +79,14 @@ export default function AdminLoginPage() {
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Username
               </label>
               <div className="relative">
@@ -99,7 +108,10 @@ export default function AdminLoginPage() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -109,7 +121,7 @@ export default function AdminLoginPage() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   value={formData.password}
                   onChange={handleInputChange}
@@ -138,14 +150,30 @@ export default function AdminLoginPage() {
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing in...
                 </>
               ) : (
-                'Sign In as Admin'
+                "Sign In as Admin"
               )}
             </button>
           </form>

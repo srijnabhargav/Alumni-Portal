@@ -1,6 +1,6 @@
 // app/page.tsx
-import Link from 'next/link';
-import { Users, GraduationCap } from 'lucide-react';
+import Link from "next/link";
+import { Users, GraduationCap } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -21,9 +21,12 @@ export default function HomePage() {
             <div className="mx-auto w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mb-6">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Alumni Access</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Alumni Access
+            </h2>
             <p className="text-gray-600 mb-6">
-              Sign in with your Google account to access your alumni profile and connect with other graduates.
+              Sign in with your Google account to access your alumni profile and
+              connect with other graduates.
             </p>
             <Link
               href="/login"
@@ -38,9 +41,12 @@ export default function HomePage() {
             <div className="mx-auto w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-6">
               <Users className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Access</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Admin Access
+            </h2>
             <p className="text-gray-600 mb-6">
-              Administrative access for managing alumni records and portal content.
+              Administrative access for managing alumni records and portal
+              content.
             </p>
             <Link
               href="/admin/login"

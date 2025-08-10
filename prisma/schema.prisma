@@ -76,6 +76,13 @@ model Alumni {
   linkedinUrl String?
   bio         String?
   profilePicture String?
+
+  status      String   @default("pending") // pending, approved, rejected, blocked
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?  // admin username who reviewed
+  rejectionReason String? // reason for rejection
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -93,4 +100,14 @@ model Admin {
   updatedAt   DateTime @updatedAt
   
   @@map("admin")
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  blockedAt DateTime @default(now())
+  blockedBy String   // admin username who blocked
+  reason    String?
+  
+  @@map("blocked_users")
 }

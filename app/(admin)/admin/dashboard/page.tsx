@@ -1,376 +1,287 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAdmin } from '@/contexts/AdminContext'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAdmin } from "@/contexts/AdminContext";
 
-interface AlumniFormData {
-  name: string
-  email: string
-  phone: string
-  graduationYear: string
-  degree: string
-  department: string
-  currentJob: string
-  company: string
-  location: string
-  linkedinUrl: string
-  bio: string
-  profilePicture: string
+interface ProfileData {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  submittedAt: string;
+  phone: string;
+  graduationYear: string;
+  degree: string;
+  department: string;
+  currentJob: string;
+  company: string;
+  location: string;
+  linkedinUrl: string;
+  bio: string;
+  profilePicture: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
 }
 
 export default function AdminDashboard() {
-  const { admin, isAuthenticated, isLoading: adminLoading, logout } = useAdmin()
-  const router = useRouter()
-  
-  const [formData, setFormData] = useState<AlumniFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    graduationYear: '',
-    degree: '',
-    department: '',
-    currentJob: '',
-    company: '',
-    location: '',
-    linkedinUrl: '',
-    bio: '',
-    profilePicture: ''
-  })
+  const [profiles, setProfiles] = useState<ProfileData[]>([]);
+  const [filter, setFilter] = useState("pending");
+  const { admin, logout } = useAdmin();
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-
-  // Check admin authentication on component mount
   useEffect(() => {
-    if (!adminLoading && !isAuthenticated) {
-      router.push('/')
-    }
-  }, [adminLoading, isAuthenticated, router])
+    fetchProfiles();
+  }, [filter]);
 
-  // Show loading state while checking admin authentication
-  if (adminLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-pulse">
-            <div className="bg-gray-200 h-8 w-48 mx-auto rounded mb-4"></div>
-            <div className="bg-gray-200 h-4 w-32 mx-auto rounded"></div>
-          </div>
-          <p className="mt-4 text-gray-600">Verifying admin access...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Don't render anything if not authenticated (will redirect)
-  if (!isAuthenticated) {
-    return null
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setMessage(null)
-
+  const fetchProfiles = async () => {
     try {
-      // Prepare data - convert empty strings to null for optional fields
-      const dataToSubmit = {
-        ...formData,
-        graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : null,
-        // Convert empty strings to null for optional fields
-        name: formData.name || null,
-        phone: formData.phone || null,
-        degree: formData.degree || null,
-        department: formData.department || null,
-        currentJob: formData.currentJob || null,
-        company: formData.company || null,
-        location: formData.location || null,
-        linkedinUrl: formData.linkedinUrl || null,
-        bio: formData.bio || null,
-        profilePicture: formData.profilePicture || null,
-      }
-
-      const response = await fetch('/api/alumni', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSubmit),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Alumni added successfully!' })
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          graduationYear: '',
-          degree: '',
-          department: '',
-          currentJob: '',
-          company: '',
-          location: '',
-          linkedinUrl: '',
-          bio: '',
-          profilePicture: ''
-        })
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to add alumni' })
-      }
+      const response = await fetch(`/api/admin/profiles?status=${filter}`);
+      const data = await response.json();
+      setProfiles(data.profiles);
     } catch (error) {
-      console.error('Error adding alumni:', error)
-      setMessage({ type: 'error', text: 'An unexpected error occurred' })
-    } finally {
-      setIsLoading(false)
+      console.error("Error fetching profiles:", error);
     }
-  }
+  };
 
-  const handleLogout = async () => {
-    await logout()
-    router.push('/')
-  }
+  const handleProfileAction = async (
+    profileId: string,
+    action: string,
+    reason?: string,
+  ) => {
+    try {
+      await fetch(`/api/admin/profiles/${profileId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          reason,
+          adminUsername: admin?.username,
+        }),
+      });
+      fetchProfiles(); // Refresh list
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
+  const renderActionButtons = (profile: ProfileData) => {
+    if (filter === "pending") {
+      return (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleProfileAction(profile.id, "approve")}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Approve
+          </button>
+          <button
+            onClick={() => {
+              const reason = prompt("Reason for rejection (optional):");
+              handleProfileAction(profile.id, "reject", reason || undefined);
+            }}
+            className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+          >
+            Reject
+          </button>
+          <button
+            onClick={() => {
+              const reason = prompt("Reason for blocking (required):");
+              if (reason) handleProfileAction(profile.id, "block", reason);
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Block
+          </button>
+        </div>
+      );
+    }
+
+    if (filter === "blocked") {
+      return (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              const confirmUnblock = confirm(
+                `Are you sure you want to unblock ${profile.name || profile.email}? This will set their profile status to rejected so that they can reapply.`,
+              );
+              if (confirmUnblock) {
+                handleProfileAction(profile.id, "unblock");
+              }
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Unblock
+          </button>
+        </div>
+      );
+    }
+
+    if (filter === "rejected") {
+      return (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleProfileAction(profile.id, "approve")}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Approve
+          </button>
+          <button
+            onClick={() => {
+              const reason = prompt("Reason for blocking (required):");
+              if (reason) handleProfileAction(profile.id, "block", reason);
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Block
+          </button>
+        </div>
+      );
+    }
+
+    /*
+    // For approved profiles, allow blocking
+    if (filter === 'approved') {
+      return (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              const reason = prompt('Reason for blocking (required):')
+              if (reason) handleProfileAction(profile.id, 'block', reason)
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Block
+          </button>
+        </div>
+      )
+    }
+    */
+
+    return null;
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header with admin info and logout */}
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back!</p>
-        </div>
+        <h1 className="text-3xl font-bold">
+          Admin Dashboard - Profile Management
+        </h1>
         <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200"
+          onClick={logout}
+          className="px-4 py-2 bg-red-600 text-white rounded"
         >
           Logout
         </button>
       </div>
-      
-      {message && (
-        <div className={`mb-6 p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-green-100 text-green-700 border border-green-200' 
-            : 'bg-red-100 text-red-700 border border-red-200'
-        }`}>
-          {message.text}
-        </div>
-      )}
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">Add New Alumni</h2>
-        <p className="text-sm text-gray-600 mb-6">
-          <span className="text-red-500">*</span> indicates required fields. All other fields are optional.
-        </p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter full name (optional)"
-              />
-            </div>
+      {/* Filter tabs */}
+      <div className="mb-6">
+        {["pending", "approved", "rejected", "blocked"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`mr-4 px-4 py-2 rounded ${filter === status ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter email address"
-              />
-              <p className="text-xs text-gray-500 mt-1">Gmail required for login access</p>
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter phone number (optional)"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700 mb-1">
-                Graduation Year
-              </label>
-              <input
-                type="number"
-                id="graduationYear"
-                name="graduationYear"
-                value={formData.graduationYear}
-                onChange={handleChange}
-                min="1950"
-                max={new Date().getFullYear()}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 2020"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="degree" className="block text-sm font-medium text-gray-700 mb-1">
-                Degree
-              </label>
-              <input
-                type="text"
-                id="degree"
-                name="degree"
-                value={formData.degree}
-                onChange={handleChange}
-                placeholder="e.g., Bachelor of Computer Science"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <input
-                type="text"
-                id="department"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                placeholder="e.g., Computer Science"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="currentJob" className="block text-sm font-medium text-gray-700 mb-1">
-                Current Job Title
-              </label>
-              <input
-                type="text"
-                id="currentJob"
-                name="currentJob"
-                value={formData.currentJob}
-                onChange={handleChange}
-                placeholder="e.g., Software Engineer"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
-                Company
-              </label>
-              <input
-                type="text"
-                id="company"
-                name="company"
-                value={formData.company}
-                onChange={handleChange}
-                placeholder="e.g., Google"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g., San Francisco, CA"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                LinkedIn URL
-              </label>
-              <input
-                type="url"
-                id="linkedinUrl"
-                name="linkedinUrl"
-                value={formData.linkedinUrl}
-                onChange={handleChange}
-                placeholder="https://linkedin.com/in/username"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+      {/* Profiles list */}
+      <div className="space-y-4">
+        {profiles.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No {filter} profiles found.
           </div>
-
-          <div>
-            <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 mb-1">
-              Profile Picture URL
-            </label>
-            <input
-              type="url"
-              id="profilePicture"
-              name="profilePicture"
-              value={formData.profilePicture}
-              onChange={handleChange}
-              placeholder="https://example.com/photo.jpg"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-              Bio
-            </label>
-            <textarea
-              id="bio"
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              rows={4}
-              placeholder="Brief description about the alumni (optional)..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="pt-4">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+        ) : (
+          profiles.map((profile) => (
+            <div
+              key={profile.id}
+              className="bg-white p-6 rounded-lg shadow border"
             >
-              {isLoading ? 'Adding Alumni...' : 'Add Alumni'}
-            </button>
-          </div>
-        </form>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold">
+                      {profile.name || "No name provided"}
+                    </h3>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        profile.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : profile.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : profile.status === "rejected"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {profile.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                    <div>
+                      <p>
+                        <strong>Email:</strong> {profile.email}
+                      </p>
+                      <p>
+                        <strong>Phone:</strong>{" "}
+                        {profile.phone || "Not provided"}
+                      </p>
+                      <p>
+                        <strong>Graduation Year:</strong>{" "}
+                        {profile.graduationYear || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <p>
+                        <strong>Degree:</strong>{" "}
+                        {profile.degree || "Not provided"}
+                      </p>
+                      <p>
+                        <strong>Department:</strong>{" "}
+                        {profile.department || "Not provided"}
+                      </p>
+                      <p>
+                        <strong>Current Job:</strong>{" "}
+                        {profile.currentJob || "Not provided"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Show rejection reason for rejected/blocked profiles */}
+                  {(profile.status === "rejected" ||
+                    profile.status === "blocked") &&
+                    profile.rejectionReason && (
+                      <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded">
+                        <p className="text-sm">
+                          <strong>Reason:</strong> {profile.rejectionReason}
+                        </p>
+                      </div>
+                    )}
+
+                  <div className="text-xs text-gray-500">
+                    <p>
+                      Submitted:{" "}
+                      {new Date(profile.submittedAt).toLocaleDateString()}
+                    </p>
+                    {profile.reviewedBy && profile.reviewedAt && (
+                      <p>
+                        Reviewed by {profile.reviewedBy} on{" "}
+                        {new Date(profile.reviewedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="ml-4">{renderActionButtons(profile)}</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
-  )
+  );
 }

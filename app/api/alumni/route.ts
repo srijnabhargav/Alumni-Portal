@@ -13,7 +13,7 @@ export async function GET() {
     console.error("Error fetching alumni:", error);
     return NextResponse.json(
       { error: "Failed to fetch alumni" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -65,13 +65,13 @@ export async function POST(request: NextRequest) {
     if (error.code === "P2002") {
       return NextResponse.json(
         { error: "Alumni with this email already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to create alumni" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
