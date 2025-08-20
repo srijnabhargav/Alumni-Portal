@@ -3,14 +3,15 @@ import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> }, // Changed to Promise
 ) {
   try {
     const { action, reason, adminUsername } = await request.json();
+    const { id } = await params; // Await the params to get the id
 
     if (action === "approve") {
       await prisma.alumni.update({
-        where: { id: params.id },
+        where: { id }, // Use the awaited id
         data: {
           status: "approved",
           reviewedAt: new Date(),
@@ -19,7 +20,7 @@ export async function PUT(
       });
     } else if (action === "reject") {
       await prisma.alumni.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: "rejected",
           reviewedAt: new Date(),
@@ -29,7 +30,7 @@ export async function PUT(
       });
     } else if (action === "block") {
       const alumni = await prisma.alumni.findUnique({
-        where: { id: params.id },
+        where: { id },
       });
 
       if (alumni) {
@@ -44,7 +45,7 @@ export async function PUT(
 
         // Update alumni status
         await prisma.alumni.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: "blocked",
             reviewedAt: new Date(),
@@ -54,7 +55,7 @@ export async function PUT(
       }
     } else if (action === "unblock") {
       const alumni = await prisma.alumni.findUnique({
-        where: { id: params.id },
+        where: { id },
       });
 
       if (alumni) {
@@ -65,7 +66,7 @@ export async function PUT(
 
         // Update alumni status to pending for review
         await prisma.alumni.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: "rejected",
             reviewedAt: new Date(),
