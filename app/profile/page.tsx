@@ -525,7 +525,7 @@ export default function ProfilePage() {
                     onChange={handleChange}
                     required
                     min="1950"
-                    max={new Date().getFullYear()}
+                    max={new Date().getFullYear()+6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="e.g., 2020"
                   />
